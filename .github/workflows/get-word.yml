@@ -29,12 +29,12 @@ jobs:
       run: npm ci
 
     - name: Build
-      run: npx tsc
+      run: npm run build
 
     - name: Run main.ts
       env:
         API_BASE_URL: ${{ secrets.API_URL }}
-      run: node main.js > output.txt
+      run: node dist/main.js > output.txt
 
     - name: Discord Webhook Action
       uses: tsickert/discord-webhook@v6.0.0

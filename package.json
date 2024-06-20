@@ -2,13 +2,16 @@
   "name": "git",
   "version": "1.0.0",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "build": "tsc main.ts --outDir dist"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "devDependencies": {
     "@playwright/test": "^1.44.1",
-    "@types/node": "^20.14.6"
+    "@types/node": "^20.14.6",
+    "typescript": "^5.5.2"
   }
 }
