@@ -39,7 +39,7 @@ jobs:
     - name: Discord Webhook Action
       uses: tsickert/discord-webhook@v6.0.0
       with:
-        webhook: ${{ secrets.DISCORD_WEBHOOK }}
+        webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
         username: 'GitHub Actions'
         content: "Här är dagens ordel!"
         filename: output.txt
