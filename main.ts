@@ -2,21 +2,25 @@ import fs from 'fs';
 
 const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3000/api/guess';
 
+type ResponseData = {letters: number[]} | { error: string };
 
 async function parseResponse(response: Response) {
-    const data = await response.json();
-    return data.every((n: number) => n === 1)
+    const data = await response.json() as Number[];
+    return data.every((n) => n === 1)
 }
 
-const calculate_how_many_days_since_beginning = () => {
-    // 28 december 2021
-    const then = new Date(2021, 12, 28)
+const days_elapsed_since_then = () => {
+    const then = new Date(2024, 5, 19); // June is month 5 (0-indexed)
     const now = new Date();
     const diff = now.getTime() - then.getTime();
-    return Math.ceil(diff / (1000 * 60 * 60 * 24));
+    // Return diff in days
+    return Math.floor(diff / (1000 * 3600 * 24));
 }
 
-function craftFetchRequest(n: number, word: string, someId = "904") {
+const MAGIC_NUMBER = 904 + days_elapsed_since_then();
+
+
+function craftFetchRequest(n: number, word: string, someId: number = 904) {
     return fetch(`${API_BASE_URL}?n=${n}&guess=${word}&id=${someId}`)
 }
 
@@ -51,92 +55,55 @@ async function moreCalculatedGuess() {
     let words = JSON.parse(fs.readFileSync('words.json', 'utf8')) as string[];
 
     // loop through all words
-    for (const word of words) {
-        // send a request to the API for each word
-        const response = await craftFetchRequest(words.indexOf(word), word);
-        const json = await response.json() as number[];
-
-        // check if any number in the response array is -1
-        if (json.includes(-1)) {
-            // remove all words from the words list that have the char in any position
-            const charToRemove = word[json.indexOf(-1)];
-            words = words.filter((w) => !w.includes(charToRemove));
-        }
-
-        // check if any number in the response array is 0
-        if (json.includes(0)) {
-            // remove all words from the words list that have the char in the position of the response array
-            const charIndexToRemove = json.indexOf(0);
-            words = words.filter((w) => w[charIndexToRemove] !== word[charIndexToRemove]);
-        }
-
-        // check if all numbers in the response array are 1
-        if (json.every((n) => n === 1)) {
-            console.log('Word is correct');
-        } else {
-            console.log('Word is incorrect');
-        }
-    }
-
     // repeat until response array is all 1's
-}
+    for (let i = 0; i < words.length; i++) {
+        const word = words[i];
+        console.log("Word: ", word);
+        console.log("Words left: ", words.length);
 
-function generateAllStrings(chars: string[]): string[] {
-    const result: string[] = [];
+        // Send a request to the API for each word
+        const response = await craftFetchRequest(i, word, MAGIC_NUMBER);
+        const json = await response.json() as ResponseData;
+        console.log(json);
 
-    function backtrack(currentString: string, remainingLength: number) {
-        if (remainingLength === 0) {
-            result.push(currentString);
-            return;
+        if ("error" in json && json?.error === "INVALID_WORD") {
+            console.error("INVALID_WORD");
+            continue;
         }
 
-        for (const char of chars) {
-            backtrack(currentString + char, remainingLength - 1);
-        }
-    }
+        if ("letters" in json) {
+            const responseArray = json?.letters;
 
-    backtrack('', 5);
+            // Filter words based on response array conditions
+            words = words.filter((w) => {
+                // Check if any number in the response array is -1
+                if (responseArray.includes(-1)) {
+                    const charToRemove = word[responseArray.indexOf(-1)];
+                    if (w.includes(charToRemove)) return false;
+                }
 
-    return result;
-}
+                // Check if any number in the response array is 0
+                if (responseArray.includes(0)) {
+                    const charIndexToRemove = responseArray.indexOf(0);
+                    if (w[charIndexToRemove] === word[charIndexToRemove]) return false;
+                }
 
-// Spray and pray ahh type shit
-// probably a very bad idea to send 118,755 requests compared to roughly 14,505 each day
-async function bruteForceWords() {
-    // Brute force all alphabetical chars in all positions
-    const chars = 'abcdefghijklmnopqrstuvwxyzåäö'.split('');
+                return true;
+            });
 
-    // loop through all combination
-    const longAssWordList = generateAllStrings(chars);
-
-    const veryBigPromise = Promise.all(
-        Array.from(longAssWordList, (word, i) => craftFetchRequest(i, word))
-    ).then(async (responses) => {
-        for (const response of responses) {
-            const json = await response.json() as number[];
-            // if all numbers in response are 1 then the word is correct
-            if (json.every((n) => n === 1)) {
+            // Check if all numbers in the response array are 1
+            if (responseArray.every((n) => n === 1)) {
                 console.log('Word is correct');
+                break;
             } else {
                 console.log('Word is incorrect');
             }
         }
-    })
-    ;
 
-    // send request to api for each word
-    for (const word of longAssWordList) {
-        const response = await craftFetchRequest(longAssWordList.indexOf(word), word);
-        const json = await response.json() as number[];
-
-        // check if all numbers in the response array are 1
-        if (json.every((n) => n === 1)) {
-            console.log('Word is correct');
-        } else {
-            console.log('Word is incorrect');
-        }
+        console.log("Words left: ", words.length);
     }
 }
 
-console.log("Days since start? (this shit is wrong) ,", calculate_how_many_days_since_beginning());
+console.log("more better since behinning", MAGIC_NUMBER);
+moreCalculatedGuess();
 // wordSpray();
