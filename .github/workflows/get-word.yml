@@ -3,7 +3,8 @@ name: Run main.ts
 on:
   schedule:
     # Standard Time (Last Sunday of October to Last Saturday of March)
-    - cron: '0 8 * 10-3 *'
+    - cron: '0 8 * 1-3 *'
+    - cron: '0 8 * 10-12 *'
     # Daylight Saving Time (Last Sunday of March to Last Saturday of October)
     - cron: '0 7 * 3-10 *'
   push:
