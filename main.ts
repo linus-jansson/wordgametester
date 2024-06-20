@@ -133,7 +133,7 @@ async function moreCalculatedGuess(words: string[]): Promise<{correctWord: strin
         console.log("Tries: ", tries);
         return;
     }
-    // console.log("word ", correctWord, "found in", tries, "tries");
+    console.log("word ", `"${correctWord}"`, " was found in", tries, "tries");
     // console.log("Finding Average tries when scrambling words list...");
     // const run_for = 100;
     // const {totalTries, failedAttempts, average} = await doThisThousandTimesAndFindTheAvaerageWhenScramblingWords(wordsList, run_for);
