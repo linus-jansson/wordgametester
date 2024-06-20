@@ -1,0 +1,44 @@
+name: Run main.ts
+
+on:
+  schedule:
+    # Standard Time (Last Sunday of October to Last Saturday of March)
+    - cron: '0 8 * 10-3 *'
+    # Daylight Saving Time (Last Sunday of March to Last Saturday of October)
+    - cron: '0 7 * 3-10 *'
+  push:
+    branches:
+      - main
+  
+
+jobs:
+  run-main:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '20'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build
+      run: npx tsc
+
+    - name: Run main.ts
+      env:
+        API_BASE_URL: ${{ secrets.API_URL }}
+      run: node main.js > output.txt
+
+    - name: Discord Webhook Action
+      uses: tsickert/discord-webhook@v6.0.0
+      with:
+        webhook: ${{ secrets.DISCORD_WEBHOOK }}
+        username: 'GitHub Actions'
+        content: "Här är dagens ordel!"
+        filename: output.txt
