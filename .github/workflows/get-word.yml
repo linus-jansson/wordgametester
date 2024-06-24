@@ -15,7 +15,6 @@ on:
 jobs:
   run-main:
     runs-on: ubuntu-latest
-    working-directory: wordguesser
 
     steps:
     - name: Checkout code
