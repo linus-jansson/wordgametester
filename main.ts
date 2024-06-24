@@ -29,64 +29,93 @@ function craftFetchRequest(n: number, word: string, someId: number = 904) {
     return fetch(`${API_BASE_URL}?n=${n}&guess=${word}&id=${someId}`)
 }
 
-// loop through list of words
-// for each word, send a requst to the API
-// for each response, 
-    // if any of the numbers in the response array is -1 then the char in the position of the word is not present in the answer.
-    // if so, remove all words from the words list that has that char in any position.
-    // if any number in the response array is 0, then the char is present but in the wrong position OR the char is in multiple positions. 
-    // if so, remove all  words which only has that char in the position of the response array and the char is not in multiple places.
-    // if any number in the response array is 1, then the char is present in the correct position. remove all words from the words list that does not have that char in the position of the response array.
-// repeat until response array is all 1's
+enum Letter {
+    NotPresent = -1,
+    WrongPosition = 0,
+    CorrectPosition = 1
+}
+
+
+/*
+    Filter function to remove words that are not possible based on the response:
+        - If the number is -1, then the char in the current word is not present in the answer
+            So remove it from the list of words.
+        - If the number is 0, then the char is present but in the wrong position
+            If the char exists in multiple positions, then the char may be in the correct position. do not remove it.
+            If the char is in only one position in the words list, then remove it.
+        - If the number is 1, then the char is present in the correct position
+            The char is in the correct position, so do nothing.
+*/
+const filterFunction = (response_array: Letter[], candidate: string, word: string) => {
+    const tested_chars = new Set<string>();
+    for (let index = 0; index < response_array.length; index++) {
+        const current_status = response_array[index];
+        const current_char_in_word = word[index];
+        const current_char_in_candidate = candidate[index];
+        tested_chars.add(current_char_in_candidate);
+
+        switch (current_status) {
+            case Letter.NotPresent:
+                if (candidate.includes(current_char_in_word)) {
+                    console.log(`Filtering out ${candidate} because it contains ${current_char_in_word} which is not present.`);
+                    return false;
+                }
+                break;
+            case Letter.WrongPosition:
+                if (current_char_in_candidate === current_char_in_word) {
+                    console.log(`Filtering out ${candidate} because ${current_char_in_word} is in the wrong position.`);
+                    return false;
+                }
+                break;
+            case Letter.CorrectPosition:
+                if (current_char_in_candidate !== current_char_in_word) {
+                    console.log(`Filtering out ${candidate} because ${current_char_in_word} should be in position ${index}.`);
+                    return false;
+                }
+                break;
+            default:
+                throw new Error("Invalid status");
+        }
+    }
+    return true;
+}
+
+
+/*
+    loop through list of words
+    for each word, send a requst to the API
+    
+
+    repeat until response array is all 1's
+*/
 async function moreCalculatedGuess(words: string[]): Promise<{ correctWord: string, tries: number }> {
     let currentWordList = [...words];
-    let index = 0;
+    let tries = 0;
 
     while (currentWordList.length > 0) {
-        const word = currentWordList[0]; // Always picks the first word from the list
-        const res = await craftFetchRequest(index, word, MAGIC_NUMBER); // Assume this sends an API request
+        const current_word = currentWordList[0];  // get first word in the list
+        const res = await craftFetchRequest(tries, current_word, MAGIC_NUMBER); // Assume this sends an API request
         const letters = await parseResponse(res); // Parses the response
 
-        console.log(currentWordList.length, "words left to guess", "word", word, "response", letters);
+        console.log(`Trying word: ${current_word}, Remaining words: ${currentWordList.length}, Response: ${letters}`);
 
         if (letters === null) { // If the word is invalid, remove it and continue
-            currentWordList = currentWordList.filter(candidate => candidate !== word);
-            index++;
+            currentWordList = currentWordList.filter(candidate => candidate !== current_word);
+            tries++;
             continue;
         }
 
-        if (letters.every(num => num === 1)) { // If all responses are 1, we found the correct word
-            return { correctWord: word, tries: index + 1 };
+        if (letters.every(status => status === 1)) { // All letters are correct
+            return { correctWord: current_word, tries: tries + 1 }; // Return the correct word and number of tries
+        } else {
+            // Filter the list based on the response
+            currentWordList = currentWordList.filter(candidate => filterFunction(letters, candidate, current_word));
         }
-
-        // Filter words based on the response
-        currentWordList = currentWordList.filter(candidate => {
-            for (let i = 0; i < letters.length; i++) {
-                if (letters[i] === -1) {
-                    console.log("removing", word[i])
-                    // Remove words containing this character if it should not be present at all
-                    if (candidate.includes(word[i])) {
-                        return false;
-                    }
-                } else if (letters[i] === 0) {
-                    // Character is present but not in this position, remove words that only have this character in this position
-                    if (candidate[i] === word[i] && !(candidate.split(word[i]).length > 1)) { // Split gives n+1 parts for n occurrences of the character
-                        return true;
-                    }
-                } else if (letters[i] === 1) {
-                    // Character must be in this exact position
-                    if (candidate[i] !== word[i]) {
-                        return false;
-                    }
-                }
-            }
-            return true;
-        });
-
-        index++;
+        
+        tries++;
     }
 
-    return { correctWord: "", tries: index }; // Return empty string and tries if no word is correct
+    return { correctWord: "", tries: tries }; // Return empty string and tries if no word is correct
 }
 
 
