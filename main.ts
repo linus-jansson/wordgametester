@@ -15,6 +15,39 @@ async function parseResponse(response: Response) {
     return data.letters;
 }
 
+async function simulatedParseResponse(guessedWord: string, correctWord: string): Promise<number[] | null> {
+    const guessedWordArray = guessedWord.split('');
+    const correctWordArray = correctWord.split('');
+    const result = new Array(guessedWordArray.length).fill(LETTER.WRONG);
+
+    const correctCount: Record<string, number> = {};
+    const guessedCount: Record<string, number> = {};
+
+    // First pass: identify correct letters
+    guessedWordArray.forEach((char, index) => {
+        if (char === correctWordArray[index]) {
+            result[index] = LETTER.CORRECT;
+            correctCount[char] = (correctCount[char] || 0) + 1;
+        }
+    });
+
+    // Second pass: identify kinda correct letters
+    guessedWordArray.forEach((char, index) => {
+        if (result[index] !== LETTER.CORRECT) {
+            const correctLetterCount = correctWordArray.filter(c => c === char).length;
+            const correctOccurrences = correctCount[char] || 0;
+            const guessedOccurrences = guessedCount[char] || 0;
+
+            if (guessedOccurrences < correctLetterCount - correctOccurrences) {
+                result[index] = LETTER.KINDA;
+                guessedCount[char] = (guessedCount[char] || 0) + 1;
+            }
+        }
+    });
+
+    return result;
+}
+
 const days_elapsed_since_then = () => {
     const then = new Date(2024, 5, 19); // June is month 5 (0-indexed)
     const now = new Date();
@@ -68,8 +101,6 @@ async function moreCalculatedGuess(words: string[]): Promise<{ correctWord: stri
         const guessedWord = wordsList[0];  // get first word in the list
         const res = await craftFetchRequest(tries, guessedWord, MAGIC_NUMBER); // Assume this sends an API request
         const result_num_array = await parseResponse(res); // Parses the response
-
-        // console.log(`Trying word: ${guessedWord}, Remaining words: ${wordsList.length}, Response: ${res_num_array}`);
 
         if (result_num_array === null) { // If the word is invalid, remove it and continue
             wordsList = wordsList.filter(candidate => candidate !== guessedWord);
