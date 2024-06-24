@@ -15,6 +15,7 @@ on:
 jobs:
   run-main:
     runs-on: ubuntu-latest
+    working-directory: wordguesser
 
     steps:
     - name: Checkout code
@@ -25,21 +26,22 @@ jobs:
       with:
         node-version: '20'
     
-    - name: Change directory to wordguesser
-      run: cd wordguesser
-    
     - name: Install dependencies
+      working-directory: ./wordguesser
       run: npm ci
       
     - name: Build
+      working-directory: ./wordguesser
       run: npm run build
 
     - name: Run main.ts
+      working-directory: ./wordguesser
       env:
         API_BASE_URL: ${{ secrets.API_URL }}
       run: node dist/main.js > output.txt
 
     - name: Discord Webhook Action
+      working-directory: ./wordguesser
       uses: tsickert/discord-webhook@v6.0.0
       with:
         webhook-url: ${{ secrets.DISCORD_WEBHOOK }}

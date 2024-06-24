@@ -21,11 +21,10 @@ jobs:
       with:
         node-version: '20'
     
-    - name: Change directory to wordguesser
-      run: cd wordguesser
-    
     - name: Install dependencies
+      working-directory: ./wordguesser
       run: npm ci
       
     - name: Run tests
+      working-directory: ./wordguesser
       run: npm test
