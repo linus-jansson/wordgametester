@@ -16,6 +16,10 @@ async function parseResponse(response: Response) {
 }
 
 async function simulatedParseResponse(guessedWord: string, correctWord: string): Promise<number[] | null> {
+    if (guessedWord.length !== correctWord.length) {
+        return null;
+    }
+    
     const guessedWordArray = guessedWord.split('');
     const correctWordArray = correctWord.split('');
     const result = new Array(guessedWordArray.length).fill(LETTER.WRONG);
