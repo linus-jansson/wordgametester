@@ -1,8 +1,11 @@
 import * as fs from 'fs';
 
-const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3000';
+import * as dotenv from 'dotenv';
+dotenv.config();
+
 
 type ResponseData = {letters: number[]} | { error: string };
+enum LETTER { WRONG = -1, KINDA = 0, CORRECT = 1 }
 
 async function parseResponse(response: Response) {
     const data = await response.json() as ResponseData;
@@ -10,132 +13,83 @@ async function parseResponse(response: Response) {
         return null;
     }
     return data.letters;
-    
-}
-
-function shuffle(array: any[]) {
-    let temp_list = [...array];
-    let currentIndex = temp_list.length;
-  
-    while (currentIndex != 0) {
-  
-      let randomIndex = Math.floor(Math.random() * currentIndex);
-      currentIndex--;
-  
-      [temp_list[currentIndex], temp_list[randomIndex]] = [temp_list[randomIndex], temp_list[currentIndex]];
-    }
-
-    return temp_list;
 }
 
 const days_elapsed_since_then = () => {
     const then = new Date(2024, 5, 19); // June is month 5 (0-indexed)
     const now = new Date();
     const diff = now.getTime() - then.getTime();
+    const ONE_DAY_IN_MILISECONDS = 1000 * 3600 * 24;
     // Return diff in days
-    return Math.floor(diff / (1000 * 3600 * 24));
+    return Math.floor(diff / ONE_DAY_IN_MILISECONDS);
 }
 
-const MAGIC_NUMBER = 904 + days_elapsed_since_then();
 
 function craftFetchRequest(n: number, word: string, someId: number = 904) {
     return fetch(`${API_BASE_URL}?n=${n}&guess=${word}&id=${someId}`)
 }
 
-// loop through list of words
-// for each word, send a requst to the API
-// for each response, 
-    // if any of the numbers in the response array is -1 then the char in the position of the word is not present in the answer.
-    // if so, remove all words from the words list that has that char in any position.
-    // if any number in the response array is 0, then the char is present but in the wrong position.
-    // if so, remove all words from the words list that has that char in the position of the response array.
-    // if any number in the response array is 1, then the char is present in the correct position. remove all words from the words list that does not have that char in the position of the response array.
-// repeat until response array is all 1's
-async function moreCalculatedGuess(words: string[]): Promise<{correctWord: string, tries: number}> {
-    let currentWordList = [...words];
+const isCorrectAnswer = (num_array: LETTER[]) =>  num_array.reduce((acc, val) => acc + val, 0) === 5;
+const filterIncorrectWords = (result_num_array: LETTER[], attempted_word: string, candidate_word: string): boolean => {
+    /*
+        Filter function to remove words that are not possible based on the response:
+        - If the number is 0 or if the number is -1,
+            The char may exists but is in the wrong position. Remove all words which has that char in that position.
+        - If the number is 1, then the char is present in the correct position
+            The char is in the correct position, so do nothing.
+    */
+    for (let i = 0; i < result_num_array.length; i++) {
+        const currentStatus = result_num_array[i];
 
-    let index = 0;
-    while (currentWordList.length > 0) {
-        const word = currentWordList[0];
-        const res = await craftFetchRequest(index, word, MAGIC_NUMBER);
-        const letters = await parseResponse(res);
-        
-        // remove word if response was an invalid word eg
-        if (letters === null) {
-            currentWordList = currentWordList.filter(candidate => candidate !== word);
-            continue;
+        switch (currentStatus) {
+            case LETTER.CORRECT:
+                if (candidate_word[i] !== attempted_word[i]) return false;
+                break;
+            case LETTER.KINDA:
+            case LETTER.WRONG:
+                if (candidate_word[i] === attempted_word[i]) return false;
+                break;
+            default:
+                return false;  // Invalid response value
         }
-
-        if (letters.every(num => num === 1)) {
-            // return word and number of tries
-            return {correctWord: word, tries: index + 1};
-        }
-
-        currentWordList = currentWordList.filter(candidate => {
-            for (let i = 0; i < letters.length; i++) {
-                if (letters[i] === -1 && candidate.includes(word[i])) {
-                    return false;
-                }
-                if (letters[i] === 0 && candidate[i] === word[i]) {
-                    return false;
-                }
-                if (letters[i] === 1 && candidate[i] !== word[i]) {
-                    return false;
-                }
-            }
-
-            for (let i = 0; i < letters.length; i++) {
-                if (letters[i] === 0 && !candidate.includes(word[i])) {
-                    return false;
-                }
-            }
-
-            return true;
-        });
-
-        index++;
     }
+    return true;
+};
 
-    return {correctWord: "", tries: index + 1};;
+
+const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3000';
+const MAGIC_NUMBER = 904 + days_elapsed_since_then() - 2;
+
+async function moreCalculatedGuess(words: string[]): Promise<{ correctWord: string, tries: number }> {
+    let wordsList = [...words];
+    let tries = 0;
+
+    while (wordsList.length > 0) {
+        const guessedWord = wordsList[0];  // get first word in the list
+        const res = await craftFetchRequest(tries, guessedWord, MAGIC_NUMBER); // Assume this sends an API request
+        const result_num_array = await parseResponse(res); // Parses the response
+
+        // console.log(`Trying word: ${guessedWord}, Remaining words: ${wordsList.length}, Response: ${res_num_array}`);
+
+        if (result_num_array === null) { // If the word is invalid, remove it and continue
+            wordsList = wordsList.filter(candidate => candidate !== guessedWord);
+        }
+        else if (isCorrectAnswer(result_num_array)) { 
+            return { correctWord: guessedWord, tries: tries + 1 }; // Return the correct word and number of tries
+        } 
+        else {
+            // Filter the list based on the response
+            wordsList = wordsList.filter(candidate => filterIncorrectWords(result_num_array, guessedWord, candidate));
+        }
+        
+        tries++;
+    }
+    return { correctWord: "", tries: tries }; // Return empty string and tries if no word is correct
 }
 
-// async function doThisThousandTimesAndFindTheAvaerageWhenScramblingWords(inputList: string[], numberOfTimes: number) {
-//     let wordsList = [...inputList];
-//     let totalTries = 0;
-//     let failedAttempts = 0;
-//     for (let i = 0; i < numberOfTimes; i++) {
-//         let scrambledWordsList = shuffle([...wordsList]);
-//         const {correctWord, tries} = await moreCalculatedGuess(scrambledWordsList);
-//         if (i % 10 === 0) {
-//             console.log("Number of times run: ", i);
-//         }
-        
-//         if (correctWord.length === 0) {
-//             failedAttempts++;
-//         }
-
-//         totalTries += tries;
-//     }
-//     return {
-//         totalTries: totalTries,
-//         failedAttempts: failedAttempts,
-//         average : totalTries / numberOfTimes
-//     }
-// }
-
 (async() => {
-    console.log("MAGIC_NUMBER", MAGIC_NUMBER);
+    console.log("Magic John Screenprotector", MAGIC_NUMBER);
     let wordsList = JSON.parse(fs.readFileSync('words.json', 'utf8')) as string[];
-    // scramble wordslist
     const {correctWord, tries} = await moreCalculatedGuess(wordsList);
-    if (correctWord.length === 0) {
-        console.log("Word not found");
-        console.log("Tries: ", tries);
-        return;
-    }
-    console.log("word ", `"${correctWord}"`, " was found in", tries, "tries");
-    // console.log("Finding Average tries when scrambling words list...");
-    // const run_for = 100;
-    // const {totalTries, failedAttempts, average} = await doThisThousandTimesAndFindTheAvaerageWhenScramblingWords(wordsList, run_for);
-    // console.log("total tries", totalTries, "Average tries when scrambling words: ", average, "Failed attempts: ", failedAttempts, "out of", run_for, "runs");
+    console.log(`Word "${correctWord}" ${(correctWord.length === 0) ? "was not found": "was found"} in ${tries} tries`);
 })();
