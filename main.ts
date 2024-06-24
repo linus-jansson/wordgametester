@@ -13,30 +13,17 @@ async function parseResponse(response: Response) {
     
 }
 
-function shuffle(array: any[]) {
-    let temp_list = [...array];
-    let currentIndex = temp_list.length;
-  
-    while (currentIndex != 0) {
-  
-      let randomIndex = Math.floor(Math.random() * currentIndex);
-      currentIndex--;
-  
-      [temp_list[currentIndex], temp_list[randomIndex]] = [temp_list[randomIndex], temp_list[currentIndex]];
-    }
-
-    return temp_list;
-}
-
 const days_elapsed_since_then = () => {
     const then = new Date(2024, 5, 19); // June is month 5 (0-indexed)
     const now = new Date();
     const diff = now.getTime() - then.getTime();
+    const ONE_DAY_IN_MILISECONDS = 1000 * 3600 * 24;
     // Return diff in days
-    return Math.floor(diff / (1000 * 3600 * 24));
+    return Math.floor(diff / ONE_DAY_IN_MILISECONDS);
 }
 
-const MAGIC_NUMBER = 904 + days_elapsed_since_then();
+// const MAGIC_NUMBER = 904 + days_elapsed_since_then();
+const MAGIC_NUMBER = 906;
 
 function craftFetchRequest(n: number, word: string, someId: number = 904) {
     return fetch(`${API_BASE_URL}?n=${n}&guess=${word}&id=${someId}`)
@@ -47,81 +34,62 @@ function craftFetchRequest(n: number, word: string, someId: number = 904) {
 // for each response, 
     // if any of the numbers in the response array is -1 then the char in the position of the word is not present in the answer.
     // if so, remove all words from the words list that has that char in any position.
-    // if any number in the response array is 0, then the char is present but in the wrong position.
-    // if so, remove all words from the words list that has that char in the position of the response array.
+    // if any number in the response array is 0, then the char is present but in the wrong position OR the char is in multiple positions. 
+    // if so, remove all  words which only has that char in the position of the response array and the char is not in multiple places.
     // if any number in the response array is 1, then the char is present in the correct position. remove all words from the words list that does not have that char in the position of the response array.
 // repeat until response array is all 1's
-async function moreCalculatedGuess(words: string[]): Promise<{correctWord: string, tries: number}> {
+async function moreCalculatedGuess(words: string[]): Promise<{ correctWord: string, tries: number }> {
     let currentWordList = [...words];
-
     let index = 0;
+
     while (currentWordList.length > 0) {
-        const word = currentWordList[0];
-        const res = await craftFetchRequest(index, word, MAGIC_NUMBER);
-        const letters = await parseResponse(res);
-        
-        // remove word if response was an invalid word eg
-        if (letters === null) {
+        const word = currentWordList[0]; // Always picks the first word from the list
+        const res = await craftFetchRequest(index, word, MAGIC_NUMBER); // Assume this sends an API request
+        const letters = await parseResponse(res); // Parses the response
+
+        console.log(currentWordList.length, "words left to guess", "word", word, "response", letters);
+
+        if (letters === null) { // If the word is invalid, remove it and continue
             currentWordList = currentWordList.filter(candidate => candidate !== word);
+            index++;
             continue;
         }
 
-        if (letters.every(num => num === 1)) {
-            // return word and number of tries
-            return {correctWord: word, tries: index + 1};
+        if (letters.every(num => num === 1)) { // If all responses are 1, we found the correct word
+            return { correctWord: word, tries: index + 1 };
         }
 
+        // Filter words based on the response
         currentWordList = currentWordList.filter(candidate => {
             for (let i = 0; i < letters.length; i++) {
-                if (letters[i] === -1 && candidate.includes(word[i])) {
-                    return false;
-                }
-                if (letters[i] === 0 && candidate[i] === word[i]) {
-                    return false;
-                }
-                if (letters[i] === 1 && candidate[i] !== word[i]) {
-                    return false;
+                if (letters[i] === -1) {
+                    console.log("removing", word[i])
+                    // Remove words containing this character if it should not be present at all
+                    if (candidate.includes(word[i])) {
+                        return false;
+                    }
+                } else if (letters[i] === 0) {
+                    // Character is present but not in this position, remove words that only have this character in this position
+                    if (candidate[i] === word[i] && !(candidate.split(word[i]).length > 1)) { // Split gives n+1 parts for n occurrences of the character
+                        return true;
+                    }
+                } else if (letters[i] === 1) {
+                    // Character must be in this exact position
+                    if (candidate[i] !== word[i]) {
+                        return false;
+                    }
                 }
             }
-
-            for (let i = 0; i < letters.length; i++) {
-                if (letters[i] === 0 && !candidate.includes(word[i])) {
-                    return false;
-                }
-            }
-
             return true;
         });
 
         index++;
     }
 
-    return {correctWord: "", tries: index + 1};;
+    return { correctWord: "", tries: index }; // Return empty string and tries if no word is correct
 }
 
-// async function doThisThousandTimesAndFindTheAvaerageWhenScramblingWords(inputList: string[], numberOfTimes: number) {
-//     let wordsList = [...inputList];
-//     let totalTries = 0;
-//     let failedAttempts = 0;
-//     for (let i = 0; i < numberOfTimes; i++) {
-//         let scrambledWordsList = shuffle([...wordsList]);
-//         const {correctWord, tries} = await moreCalculatedGuess(scrambledWordsList);
-//         if (i % 10 === 0) {
-//             console.log("Number of times run: ", i);
-//         }
-        
-//         if (correctWord.length === 0) {
-//             failedAttempts++;
-//         }
 
-//         totalTries += tries;
-//     }
-//     return {
-//         totalTries: totalTries,
-//         failedAttempts: failedAttempts,
-//         average : totalTries / numberOfTimes
-//     }
-// }
 
 (async() => {
     console.log("MAGIC_NUMBER", MAGIC_NUMBER);
@@ -134,8 +102,4 @@ async function moreCalculatedGuess(words: string[]): Promise<{correctWord: strin
         return;
     }
     console.log("word ", `"${correctWord}"`, " was found in", tries, "tries");
-    // console.log("Finding Average tries when scrambling words list...");
-    // const run_for = 100;
-    // const {totalTries, failedAttempts, average} = await doThisThousandTimesAndFindTheAvaerageWhenScramblingWords(wordsList, run_for);
-    // console.log("total tries", totalTries, "Average tries when scrambling words: ", average, "Failed attempts: ", failedAttempts, "out of", run_for, "runs");
 })();
