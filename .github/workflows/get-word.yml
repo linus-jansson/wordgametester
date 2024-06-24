@@ -40,10 +40,9 @@ jobs:
       run: node dist/main.js > output.txt
 
     - name: Discord Webhook Action
-      working-directory: ./wordguesser
       uses: tsickert/discord-webhook@v6.0.0
       with:
         webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
         username: 'GitHub Actions'
         content: "Här är dagens ordel!"
-        filename: output.txt
+        filename: wordguesser/output.txt
