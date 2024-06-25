@@ -18,7 +18,8 @@ const main = async () => {
     const wasWasNotFound = (correctWord.length === 0) ? "was not found": "was found";
     const correctWordText = `Word ${correctWord} ${(correctWord.length === 0) ? "was not found": "was found"} in ${tries} tries`;
     const correctWordText2 = `Word "${correctWord}" in ${tries.toString()} tries`
-    const goingToWrite = Buffer.from(correctWordText2, 'utf8').toString();
+    // adding utf8 BOM
+    const goingToWrite = Buffer.from('\ufeff' + correctWordText2, 'utf8').toString();
     fs.writeFileSync('output.txt', goingToWrite);
     console.log(`Word "${correctWord}" ${(correctWord.length === 0) ? "was not found": "was found"} in ${tries} tries`);
 }
