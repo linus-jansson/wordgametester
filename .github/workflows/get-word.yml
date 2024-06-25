@@ -36,7 +36,7 @@ jobs:
       working-directory: ./wordguesser
       env:
         API_BASE_URL: ${{ secrets.API_URL }}
-      run: node dist/main.js > output.txt
+      run: node dist/main.js > /dev/null
 
     - name: Run UTF-8 script
       run: |
