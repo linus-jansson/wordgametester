@@ -60,7 +60,7 @@ jobs:
         -F "file=@/tmp/test.txt" \
         ${{ secrets.DISCORD_WEBHOOK }}
     
-    - name: hexdump files
-      run: |
-      hexdump -C ./wordguesser/output.txt
-      hexdump -C /tmp/test.txt
+    # - name: hexdump files
+    #   run: |
+    #   hexdump -C ./wordguesser/output.txt
+    #   hexdump -C /tmp/test.txt

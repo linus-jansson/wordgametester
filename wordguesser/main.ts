@@ -15,7 +15,7 @@ const main = async () => {
     const {correctWord, tries} = await findCorrectWord(wordsList, options);
     const correctWordText = `Word '${correctWord}' ${(correctWord.length === 0) ? "was not found": "was found"} in ${tries} tries`;
     
-    const goingToWrite = Buffer.from(correctWord, 'utf8').toString();
+    const goingToWrite = Buffer.from(correctWordText, 'utf8').toString();
     fs.writeFileSync('output.txt', goingToWrite);
     console.log(`Word "${correctWord}" ${(correctWord.length === 0) ? "was not found": "was found"} in ${tries} tries`);
 }
