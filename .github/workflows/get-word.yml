@@ -38,15 +38,17 @@ jobs:
         API_BASE_URL: ${{ secrets.API_URL }}
       run: node dist/main.js > output.txt
 
-    - name: Convert to UTF-8 encoding
-      working-directory: ./wordguesser
+    - name: Run UTF-8 script
       run: |
-        iconv -f utf-8 -t utf-8 output.txt -o output_utf8.txt
+        echo "Привет, мир!" # Russian: Hello, world!
+        echo "你好，世界！"   # Chinese: Hello, world!
+        echo "こんにちは、世界！" # Japanese: Hello, world!
+        echo "😊 UTF-8 characters supported!"
 
     - name: Send file to Discord webhook
       run: |
         curl -X POST \
           -H "Content-Type: multipart/form-data" \
           -F 'payload_json={"content":"Här är dagens ordel!","embeds":[{"title":"File Upload","description":"This embed accompanies the uploaded file.","color":16711680}]}' \
-          -F "file=@./wordguesser/output_utf8.txt" \
+          -F "file=@./wordguesser/output.txt" \
           ${{ secrets.DISCORD_WEBHOOK }}
