@@ -44,6 +44,14 @@ jobs:
     - name: check LANG
       run: echo $LANG
 
+    # - name: Webhook DEBUG example file
+    #   run: |
+    #     echo "åäö test 123 hello world" > /tmp/test.txt && curl -X POST \
+    #     -H "Content-Type: multipart/form-data; charset=utf-8" \
+    #     -F 'payload_json={"content":"DEBUG FILE!"}' \
+    #     -F "file=@/tmp/test.txt" \
+    #     ${{ secrets.DISCORD_WEBHOOK }}
+
     - name: Send file to Discord webhook
       run: |
         curl -X POST \
@@ -51,16 +59,3 @@ jobs:
           -F 'payload_json={"content":"Här är dagens ordel!"}' \
           -F "file=@./wordguesser/output.txt" \
           ${{ secrets.DISCORD_WEBHOOK }}
-
-    - name: Webhook DEBUG example file
-      run: |
-        echo "växte" > /tmp/test.txt && curl -X POST \
-        -H "Content-Type: multipart/form-data; charset=utf-8" \
-        -F 'payload_json={"content":"DEBUG FILE!"}' \
-        -F "file=@/tmp/test.txt" \
-        ${{ secrets.DISCORD_WEBHOOK }}
-    
-    # - name: hexdump files
-    #   run: |
-    #   hexdump -C ./wordguesser/output.txt
-    #   hexdump -C /tmp/test.txt
