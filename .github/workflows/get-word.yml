@@ -10,7 +10,6 @@ on:
   push:
     branches:
       - main
-  
 
 jobs:
   run-main:
@@ -43,10 +42,10 @@ jobs:
       working-directory: ./wordguesser
       run: iconv -f utf-8 -t utf-8 output.txt > temp.txt && mv temp.txt output.txt
 
-    - name: Discord Webhook Action
-      uses: linus-jansson/discord-webhook@fix/encoding_issue
-      with:
-        webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
-        username: 'GitHub Actions'
-        content: "Här är dagens ordel!"
-        filename: wordguesser/output.txt
+    - name: Send file to Discord webhook
+      run: |
+        curl -X POST \
+          -H "Content-Type: multipart/form-data" \
+          -F 'payload_json={"content":"Här är dagens ordel!"}' \
+          -F "file=@./wordguesser/output.txt" \
+          ${{ secrets.DISCORD_WEBHOOK }}
