@@ -17,7 +17,7 @@ const main = async () => {
     // When adding this part below, the webhook thinks its not utf8
     const wasWasNotFound = (correctWord.length === 0) ? "was not found": "was found";
     const correctWordText = `Word ${correctWord} ${(correctWord.length === 0) ? "was not found": "was found"} in ${tries} tries`;
-    const correctWordText2 = `${correctWord} was found in ${tries.toString()}`
+    const correctWordText2 = `${correctWord} ${tries.toString()}`
     const goingToWrite = Buffer.from(correctWordText2, 'utf8').toString();
     fs.writeFileSync('output.txt', goingToWrite);
     console.log(`Word "${correctWord}" ${(correctWord.length === 0) ? "was not found": "was found"} in ${tries} tries`);
