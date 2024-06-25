@@ -54,7 +54,7 @@ jobs:
 
     - name: Webhook DEBUG example file
       run: |
-        echo "Hello åäö world" > /tmp/test.txt && curl -X POST \
+        echo "växte" > /tmp/test.txt && curl -X POST \
         -H "Content-Type: multipart/form-data; charset=utf-8" \
         -F 'payload_json={"content":"DEBUG FILE!"}' \
         -F "file=@/tmp/test.txt" \
