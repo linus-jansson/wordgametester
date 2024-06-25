@@ -13,7 +13,7 @@ const main = async () => {
 
     const wordsList = Object.freeze(JSON.parse(fs.readFileSync('../words/valid-words.json', {encoding: "utf8"}))) as string[];
     const {correctWord, tries} = await findCorrectWord(wordsList, options);
-    const correctWordText = `Word "${correctWord}" ${(correctWord.length === 0) ? "was not found": "was found"} in ${tries} tries`;
+    const correctWordText = `Word '${correctWord}' ${(correctWord.length === 0) ? "was not found": "was found"} in ${tries} tries`;
     
     const goingToWrite = Buffer.from(correctWord, 'utf8').toString();
     fs.writeFileSync('output.txt', goingToWrite);
