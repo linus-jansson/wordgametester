@@ -37,14 +37,6 @@ jobs:
       env:
         API_BASE_URL: ${{ secrets.API_URL }}
       run: node dist/main.js > /dev/null
-    
-    # - name: Save example file
-    #   run: |
-    #     echo "Hello åäö world" > /tmp/test.txt && curl -X POST \
-    #     -H "Content-Type: multipart/form-data; charset=utf-8" \
-    #     -F 'payload_json={"content":"invalid charset in preview!"}' \
-    #     -F "file=@/tmp/test.txt" \
-    #     ${{ secrets.DISCORD_WEBHOOK }}
 
     - name: check mime type
       run: file --mime ./wordguesser/output.txt
@@ -59,3 +51,11 @@ jobs:
           -F 'payload_json={"content":"Här är dagens ordel!"}' \
           -F "file=@./wordguesser/output.txt" \
           ${{ secrets.DISCORD_WEBHOOK }}
+
+    - name: Webhook DEBUG example file
+      run: |
+        echo "Hello åäö world" > /tmp/test.txt && curl -X POST \
+        -H "Content-Type: multipart/form-data; charset=utf-8" \
+        -F 'payload_json={"content":"DEBUG FILE!"}' \
+        -F "file=@/tmp/test.txt" \
+        ${{ secrets.DISCORD_WEBHOOK }}
