@@ -44,13 +44,13 @@ jobs:
     - name: check LANG
       run: echo $LANG
 
-    # - name: Webhook DEBUG example file
-    #   run: |
-    #     echo "åäö test 123 hello world" > /tmp/test.txt && curl -X POST \
-    #     -H "Content-Type: multipart/form-data; charset=utf-8" \
-    #     -F 'payload_json={"content":"DEBUG FILE!"}' \
-    #     -F "file=@/tmp/test.txt" \
-    #     ${{ secrets.DISCORD_WEBHOOK }}
+    - name: Webhook DEBUG example file
+      run: |
+        echo 'Word "växte" was found in 28 tries' > /tmp/test.txt && curl -X POST \
+        -H "Content-Type: multipart/form-data; charset=utf-8" \
+        -F 'payload_json={"content":"DEBUG FILE!"}' \
+        -F "file=@/tmp/test.txt" \
+        ${{ secrets.DISCORD_WEBHOOK }}
 
     - name: Send file to Discord webhook
       run: |
