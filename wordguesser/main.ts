@@ -11,10 +11,10 @@ const main = async () => {
 
     console.log("Magic John Screenprotector", MAGIC_NUMBER);
 
-    const wordsList = Object.freeze(JSON.parse(fs.readFileSync('../words/valid-words.json', {encoding: "utf-8"}))) as string[];
+    const wordsList = Object.freeze(JSON.parse(fs.readFileSync('../words/valid-words.json', {encoding: "utf8"}))) as string[];
     const {correctWord, tries} = await findCorrectWord(wordsList, options);
     const correctWordText = `Word "${correctWord}" ${(correctWord.length === 0) ? "was not found": "was found"} in ${tries} tries`;
-    fs.writeFileSync('output.txt', correctWordText, {encoding: "utf-8"});
+    fs.writeFileSync('output.txt', correctWordText, {encoding: "utf8"});
     console.log(`Word "${correctWord}" ${(correctWord.length === 0) ? "was not found": "was found"} in ${tries} tries`);
 }
 

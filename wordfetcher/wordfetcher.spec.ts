@@ -82,11 +82,11 @@ test('get all words parallel', async ({ browser }) => {
 
     // Remove duplicates and write to files
     const uniqueWords = [...new Set(structuredClone(collectedWords).sort())];
-    await fs.writeFile('../words/valid-words.json', JSON.stringify(uniqueWords), { encoding: 'utf-8' });
+    await fs.writeFile('../words/valid-words.json', JSON.stringify(uniqueWords), { encoding: 'utf8' });
 
     const uniqueInvalidWords =  [...new Set(structuredClone(invalidWords).sort())];
-    await fs.writeFile('../words/invalid-words.json', JSON.stringify(uniqueInvalidWords), { encoding: 'utf-8' });
+    await fs.writeFile('../words/invalid-words.json', JSON.stringify(uniqueInvalidWords), { encoding: 'utf8' });
 
     const uniqueAllWords =  [...new Set(uniqueWords.concat(uniqueInvalidWords).sort())];
-    await fs.writeFile('../words/all-words.json', JSON.stringify(uniqueAllWords), { encoding: 'utf-8' });
+    await fs.writeFile('../words/all-words.json', JSON.stringify(uniqueAllWords), { encoding: 'utf8' });
 });
