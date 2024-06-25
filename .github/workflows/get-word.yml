@@ -46,6 +46,9 @@ jobs:
     #     -F "file=@/tmp/test.txt" \
     #     ${{ secrets.DISCORD_WEBHOOK }}
 
+    - name: check mime type
+      run: file --mime ./wordguesser/output.txt
+
     - name: Send file to Discord webhook
       run: |
         curl -X POST \
