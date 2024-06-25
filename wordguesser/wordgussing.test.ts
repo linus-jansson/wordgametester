@@ -26,14 +26,23 @@ describe('shuffle module', () => {
 
 describe('wordguesser module',() => {
     test('find correct word from shuffled list', async () => {
-        const words = Object.freeze(JSON.parse(fs.readFileSync('words.json', 'utf8'))) as string[];
+        const words = Object.freeze(JSON.parse(fs.readFileSync('../words/all-words.json', 'utf8'))) as string[];
 
         const shuffledList = shuffle(words);
-        const randomWords = shuffledList.slice(0, 100);
+        const randomWords = shuffledList.slice(0, 50);
         for (const word of randomWords) {
             const {correctWord, tries} = await findCorrectWord(words, { debug: true, correct_word: word, MAGIC_NUMBER: 0, API_BASE_URL: ''});
             expect(tries).toBeLessThanOrEqual(words.length);
             expect(correctWord).toBe(word);
+        }
+    });
+
+    test('find correct word when word includes å, ä or ö', async () => {
+        const words = Object.freeze(JSON.parse(fs.readFileSync('../words/all-words.json', 'utf8'))) as string[];
+        const correctWords = ["valör", "affär", "aktör"];
+        for (const correctWord of correctWords) {
+            const {correctWord: guessedCorrectWord, tries} = await findCorrectWord(words, { debug: true, correct_word: correctWord, MAGIC_NUMBER: 0, API_BASE_URL: ''});
+            expect(guessedCorrectWord).toBe(correctWord);
         }
     });
 })

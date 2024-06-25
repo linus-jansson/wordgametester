@@ -11,7 +11,7 @@ const main = async () => {
 
     console.log("Magic John Screenprotector", MAGIC_NUMBER);
 
-    const wordsList = Object.freeze(JSON.parse(fs.readFileSync('words.json', 'utf8'))) as string[];
+    const wordsList = Object.freeze(JSON.parse(fs.readFileSync('../words/valid-words.json', 'utf8'))) as string[];
     const {correctWord, tries} = await findCorrectWord(wordsList, options);
     console.log(`Word "${correctWord}" ${(correctWord.length === 0) ? "was not found": "was found"} in ${tries} tries`);
 }
