@@ -48,6 +48,9 @@ jobs:
 
     - name: check mime type
       run: file --mime ./wordguesser/output.txt
+    
+    - name: check LANG
+      run: echo $LANG
 
     - name: Send file to Discord webhook
       run: |
