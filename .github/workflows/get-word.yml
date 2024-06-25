@@ -52,6 +52,15 @@ jobs:
         -F "file=@/tmp/test.txt" \
         ${{ secrets.DISCORD_WEBHOOK }}
 
+
+    - name: Webhook DEBUG example file
+      run: |
+        echo 'åäö hello world växte ölen 28 very long stuff' > /tmp/test.txt && curl -X POST \
+        -H "Content-Type: multipart/form-data; charset=utf-8" \
+        -F 'payload_json={"content":"DEBUG FILE!"}' \
+        -F "file=@/tmp/test.txt" \
+        ${{ secrets.DISCORD_WEBHOOK }}
+
     - name: Send file to Discord webhook
       run: |
         curl -X POST \
