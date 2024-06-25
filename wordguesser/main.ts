@@ -16,10 +16,10 @@ const main = async () => {
     // Some charachter in this makes webhook think its not utf8
     // When adding this part below, the webhook thinks its not utf8
     const wasWasNotFound = (correctWord.length === 0) ? "was not found": "was found";
-    const correctWordText = `Word ${correctWord} ${(correctWord.length === 0) ? "was not found": "was found"} in ${tries} tries`;
-    const correctWordText2 = `Word "${correctWord}" in ${tries.toString()} tries`
+    const outputtext = `Word "${correctWord}" ${wasWasNotFound} in ${tries.toString()} tries`
     // adding utf8 BOM
-    const goingToWrite = Buffer.from('\ufeff' + correctWordText2, 'utf8').toString();
+    // Jag hatar discord charset scanning
+    const goingToWrite = Buffer.from('\ufeff' + outputtext, 'utf8').toString();
     fs.writeFileSync('output.txt', goingToWrite);
     console.log(`Word "${correctWord}" ${(correctWord.length === 0) ? "was not found": "was found"} in ${tries} tries`);
 }
