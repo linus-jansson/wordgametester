@@ -44,7 +44,7 @@ jobs:
       run: iconv -f utf-8 -t utf-8 output.txt > temp.txt && mv temp.txt output.txt
 
     - name: Discord Webhook Action
-      uses: tsickert/discord-webhook@v6.0.0
+      uses: linus-jansson/discord-webhook@fix/encoding_issue
       with:
         webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
         username: 'GitHub Actions'
