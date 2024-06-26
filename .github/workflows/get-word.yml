@@ -68,11 +68,3 @@ jobs:
           -F 'payload_json={"content":"Här är dagens ordel!"}' \
           -F "file=@./wordguesser/output.txt" \
           ${{ secrets.DISCORD_WEBHOOK }}
-
-    - name: Discord Webhook Action
-      uses: linus-jansson/discord-webhook@fix/encoding_issue
-      with:
-        webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
-        username: 'GitHub Actions'
-        content: 'Testing discord webhook action fix/encoding_issue'
-        filename: /tmp/test.txt
