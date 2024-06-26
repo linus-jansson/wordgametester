@@ -70,7 +70,6 @@ jobs:
           ${{ secrets.DISCORD_WEBHOOK }}
 
     - name: Discord Webhook Action
-      uses: tsickert/discord-webhook@v6.0.0
       uses: linus-jansson/discord-webhook@fix/encoding_issue
       with:
         webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
