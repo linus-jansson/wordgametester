@@ -44,13 +44,13 @@ jobs:
     # - name: check LANG
     #   run: echo $LANG
 
-    # - name: Webhook DEBUG example file
-    #   run: |
-    #     echo 'Word "växte" was found in 28 tries' > /tmp/test.txt && curl -X POST \
-    #     -H "Content-Type: multipart/form-data; charset=utf-8" \
-    #     -F 'payload_json={"content":"DEBUG FILE!"}' \
-    #     -F "file=@/tmp/test.txt" \
-    #     ${{ secrets.DISCORD_WEBHOOK }}
+    - name: Webhook DEBUG example file
+      run: |
+        echo 'Word "växte" was found in 28 tries' > /tmp/test.txt && curl -X POST \
+        -H "Content-Type: multipart/form-data; charset=utf-8" \
+        -F 'payload_json={"content":"DEBUG FILE!"}' \
+        -F "file=@/tmp/test.txt" \
+        ${{ secrets.DISCORD_WEBHOOK }}
 
 
     # - name: Webhook DEBUG example file
@@ -68,3 +68,12 @@ jobs:
           -F 'payload_json={"content":"Här är dagens ordel!"}' \
           -F "file=@./wordguesser/output.txt" \
           ${{ secrets.DISCORD_WEBHOOK }}
+
+    - name: Discord Webhook Action
+      uses: tsickert/discord-webhook@v6.0.0
+      uses: linus-jansson/discord-webhook@fix/encoding_issue
+      with:
+        webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+        username: 'GitHub Actions'
+        content: 'Testing discord webhook action fix/encoding_issue'
+        filename: /tmp/test.txt
