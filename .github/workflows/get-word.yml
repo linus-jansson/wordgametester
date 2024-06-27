@@ -38,33 +38,9 @@ jobs:
         API_BASE_URL: ${{ secrets.API_URL }}
       run: node dist/main.js > /dev/null
 
-    # - name: check mime type
-    #   run: file --mime ./wordguesser/output.txt
-    
-    # - name: check LANG
-    #   run: echo $LANG
-
-    - name: Webhook DEBUG example file
-      run: |
-        echo 'Word "växte" was found in 28 tries' > /tmp/test.txt && curl -X POST \
-        -H "Content-Type: multipart/form-data; charset=utf-8" \
-        -F 'payload_json={"content":"DEBUG FILE!"}' \
-        -F "file=@/tmp/test.txt" \
-        ${{ secrets.DISCORD_WEBHOOK }}
-
-
-    # - name: Webhook DEBUG example file
-    #   run: |
-    #     echo 'åäö hello world växte ölen 28 very long stuff' > /tmp/test.txt && curl -X POST \
-    #     -H "Content-Type: multipart/form-data; charset=utf-8" \
-    #     -F 'payload_json={"content":"DEBUG FILE!"}' \
-    #     -F "file=@/tmp/test.txt" \
-    #     ${{ secrets.DISCORD_WEBHOOK }}
-
-    - name: Send file to Discord webhook
+    - name: Send file content to Discord webhook
       run: |
         curl -X POST \
-          -H "Content-Type: multipart/form-data; charset=utf-8" \
-          -F 'payload_json={"content":"Här är dagens ordel!"}' \
-          -F "file=@./wordguesser/output.txt" \
-          ${{ secrets.DISCORD_WEBHOOK }}
+        -H "Content-Type: application/json" \
+        -d "{\"embeds\":[{\"title\":\"Här är dagens ordel!\",\"description\":\"$(cat ./wordguesser/output.txt | jq -sR .)\"}]}" \
+        ${{ secrets.DISCORD_WEBHOOK }}
