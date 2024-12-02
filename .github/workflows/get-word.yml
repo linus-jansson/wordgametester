@@ -1,6 +1,7 @@
 name: Run main.ts
 
 on:
+  workflow_dispatch:
   schedule:
     # Standard Time (Last Sunday of October to Last Saturday of March)
     - cron: '0 8 * 1-3 *'
